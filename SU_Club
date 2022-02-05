@@ -1,0 +1,94 @@
+เครดิต : https://www.youtube.com/c/MakkhawinKunpomm
+พัฒนา : พ่อมดตะนอย
+
+function dailyAll() {
+  dailyEventMessage(1) //ทั้งหมด
+}
+
+function dailyEvent() {
+  dailyEventMessage(2) //ตามเวลา
+}  
+  
+function dailyEventMessage(IDShow) {
+  var googleCalendarId = "11111111111";
+  
+  var calendar = CalendarApp.getCalendarById(googleCalendarId);
+  var today = new Date();
+  var dailyEventList = calendar.getEventsForDay(today);
+  dailyEventList[0].get
+  var strWeek = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"]; //ฟังชก์ชันหาวันในสัปดาห์
+  var strMonthFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]; //ฟังก์ชันเดือน
+
+  //var  d = new Date(); //กำหนด d เก็บวันที่วันนี้
+  var curdate=today.getDate(); // วันที่ 1-31
+  var daycur = today.getDay(); // วัน 0-6 เพื่อไปค้นหาวัน จันทร์-ศุกร์
+  var monthcur=today.getMonth();  //เลขเดือน 0-11 เพื่อไปหา มกราคม-ธัวาคม
+  var yearcur =today.getFullYear()+543; //เพิ่มปี ค.ศ. ให้เป็น พ.ศ.
+  var yearEng =today.getFullYear(); //เพิ่มปี ค.ศ. ให้เป็น พ.ศ.  
+  var MonthId = strMonthFull[monthcur]; //เลือกเดือนภาษาไทย มกราคม-ธันวาคม
+  var Day_List = strWeek[daycur]; //เลือกวันของสัปดาห์
+  
+  var strhour=Utilities.formatDate(new Date(), "Asia/Bangkok", "HH");  // HH 
+  var strMinute=Utilities.formatDate(new Date(), "Asia/Bangkok", "mm"); //m กับ mm 
+  var HourMintue=strhour+':'+strMinute;    
+
+  var DayShow=''+Day_List+' ที่ '+ curdate+''+MonthId+' พ.ศ. '+yearcur 
+  
+  var messageAll =DayShow;
+  
+  for (var i = 0; i < dailyEventList.length; i++) {
+  
+    var eventTitle =   "📚เรื่อง : "  + dailyEventList[i].getTitle();
+    var eventTime  =   "⌚เวลา : " + "" + dailyEventList[i].getStartTime().toTimeString().slice(0,8);
+    var eventDescription = "🎯รายละเอียด " + "\n" + dailyEventList[i].getDescription();
+    
+    var DailyHM=dailyEventList[i].getStartTime().toTimeString().slice(0,5);
+
+    messageAll += "\n" + eventTitle + "\n" + eventTime + "\n" + eventDescription;
+    
+    if (IDShow==2){ //หากมีรายการที่ต้องแจ้งตามเวลา        
+        if (DailyHM==HourMintue){
+          var message =DayShow+''+eventTitle + "\n" + eventTime + "\n" + eventDescription;  
+          if (message !== "") {
+            //Logger.log(message);  
+            sendMessage(message);    
+          }//if
+        } //if
+    } //if  
+  } //for
+  
+  if (IDShow==1){ //แสดงรายการทั้งหมด
+    if (messageAll !== "") {
+      //Logger.log(messageAll);  
+      sendMessage(messageAll);    
+    }
+  }  
+} //func
+
+
+function sendMessage(message) {
+  var lineNotifyEndPoint = "https://notify-api.line.me/api/notify";
+  var accessToken = "22222222222";
+  
+  var formData = {
+    "message": message
+  };
+  
+  var options = {
+    "headers" : {"Authorization" : "Bearer " + accessToken},
+    "method" : 'post',
+    "payload" : formData
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(lineNotifyEndPoint, options);
+  }
+  catch (error) {
+    Logger.log(error.name + "：" + error.message);
+    return;
+  }
+    
+  if (response.getResponseCode() !== 200) {
+    Logger.log("Sending message failed.");
+  } 
+}
